@@ -1,0 +1,14 @@
+name: Daily price sheet sync
+
+on:
+  schedule:
+    # 매일 오전 6시(KST) = UTC 21시(전날)
+    - cron: "0 21 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call price sheet sync endpoint
+        run: curl -sf -X POST https://bomchan-quote.onrender.com/api/price-items/sync-sheet
