@@ -239,7 +239,7 @@ function NewQuoteForm() {
       <p className="subtle">채팅하듯 편하게 입력하면 품목을 자동으로 단가표와 매칭해 드립니다.</p>
 
       <div className="card">
-        <label>입력 (예: 전국구조경, 블랙자갈 20-30 사이즈 40개, 굴림 현무암 판석 부정형 50T 2PLT, 큐브석 180개, 운임 7만5천)</label>
+        <label>입력 (예: 업체명, 제품, 사이즈, 수량PLT/EA, 운임)</label>
         <textarea value={rawText} onChange={(e) => setRawText(e.target.value)} placeholder="업체명, 품목1 수량, 품목2 수량, 운임 금액" />
         <div className="flex gap-top">
           <button className="primary" onClick={handleParse} disabled={parsing}>
