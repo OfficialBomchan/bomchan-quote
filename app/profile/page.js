@@ -91,32 +91,42 @@ export default function ProfilePage() {
       <div className="card">
         <h2>프로필 사진</h2>
         <div className="flex">
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: "50%",
-              overflow: "hidden",
-              background: "var(--green-light)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 24,
-              fontWeight: 700,
-              color: "var(--green)",
-              flexShrink: 0,
-            }}
-          >
-            {user.avatarPath ? (
-              <img
-                src={user.avatarPath}
-                alt="프로필 사진"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
-              />
-            ) : (
-              name.slice(0, 1) || "?"
-            )}
-          </div>
+          {user.avatarPath ? (
+            // 원본 비율을 그대로 보여주기 위해 틀을 정사각형으로 고정하지 않고,
+            // 사진 자체의 가로세로 비율에 맞춰 높이가 늘어나게 한다(최대 72px 폭,
+            // 확대는 되지만 잘리지는 않음).
+            <img
+              src={user.avatarPath}
+              alt="프로필 사진"
+              style={{
+                width: 72,
+                height: "auto",
+                maxHeight: 140,
+                borderRadius: 8,
+                flexShrink: 0,
+                objectFit: "contain",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                overflow: "hidden",
+                background: "var(--green-light)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 24,
+                fontWeight: 700,
+                color: "var(--green)",
+                flexShrink: 0,
+              }}
+            >
+              {name.slice(0, 1) || "?"}
+            </div>
+          )}
           <div>
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoChange} disabled={uploading} />
             <div className="subtle" style={{ marginTop: 4 }}>jpg/png/webp, 3MB 이하</div>
