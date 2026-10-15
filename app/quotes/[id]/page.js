@@ -22,6 +22,46 @@ function formatSpec(name, spec) {
   return spec;
 }
 
+// "2026. 11. 04" → "2026-11-04"
+function dotDateToDash(s) {
+  const m = (s || "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (!m) return s;
+  return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+}
+
+// PDF 대신 문자/카톡으로 바로 보낼 수 있게, 견적서 내용을 짧은 텍스트로 요약한다.
+function buildSmsText(quote) {
+  const lines = [];
+  lines.push("[㈜봄찬 견적]");
+  if (quote.contact_name) lines.push(quote.contact_name);
+
+  for (const it of quote.items) {
+    if (it.name === "운임") continue;
+    const specPart = it.spec ? ` ${formatSpec(it.name, it.spec)}` : "";
+    const pltMatch = (it.note || "").match(/^(\d+)PLT$/);
+    if (pltMatch) {
+      const pltCount = Number(pltMatch[1]);
+      const perPallet = pltCount > 0 ? Math.round(it.qty / pltCount) : it.qty;
+      lines.push(`- ${it.name}${specPart} · ${perPallet}EA/PLT ${pltCount}PLT: ${it.total.toLocaleString()}원`);
+    } else {
+      lines.push(`- ${it.name}${specPart} · ${it.qty.toLocaleString()}EA: ${it.total.toLocaleString()}원`);
+    }
+  }
+
+  lines.push(`합계 ${quote.total_amount.toLocaleString()}원 (부가세 포함)`);
+
+  const notesLines = (quote.notes || "").split("\n").filter(Boolean);
+  const leadTime = notesLines.find((l) => l.includes("리드타임"));
+  if (leadTime) lines.push(leadTime.trim());
+
+  lines.push(`유효기간 ${dotDateToDash(quote.valid_until)}까지`);
+
+  const orderUnit = notesLines.find((l) => l.includes("주문단위"));
+  if (orderUnit) lines.push(orderUnit.trim());
+
+  return lines.join("\n");
+}
+
 // .quote-doc의 CSS max-width와 같은 값. 화면 폭이 이보다 좁을 때(모바일)
 // 레이아웃을 다시 짜지(reflow) 않고 데스크톱 모습 그대로 통째로 축소해서,
 // 다운로드되는 PDF와 똑같은 비율로 보이게 한다.
@@ -32,6 +72,7 @@ export default function QuoteDetailPage() {
   const [quote, setQuote] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadMsg, setDownloadMsg] = useState("");
+  const [copyMsg, setCopyMsg] = useState("");
   const [docZoom, setDocZoom] = useState(1);
   const quoteRef = useRef(null);
   const docWrapRef = useRef(null);
@@ -129,6 +170,31 @@ export default function QuoteDetailPage() {
     }
   }
 
+  async function handleCopySms() {
+    const text = buildSmsText(quote);
+    setCopyMsg("");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyMsg("문자용 텍스트가 복사되었습니다.");
+    } catch {
+      // 클립보드 API가 막힌 환경(오래된 사파리 등) 대비: 임시 textarea로 복사
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        setCopyMsg("문자용 텍스트가 복사되었습니다.");
+      } catch {
+        setCopyMsg("복사에 실패했습니다. 직접 선택해서 복사해주세요.");
+      } finally {
+        document.body.removeChild(ta);
+      }
+    }
+  }
+
   if (!quote) return <p className="subtle">불러오는 중...</p>;
 
   const notesLines = (quote.notes || "").split("\n").filter(Boolean);
@@ -140,12 +206,14 @@ export default function QuoteDetailPage() {
         <div className="flex">
           <a className="link" href={`/?copyFrom=${quote.id}`}>복사해서 새로 만들기</a>
           <button onClick={() => window.print()}>인쇄</button>
+          <button onClick={handleCopySms}>문자용 복사</button>
           <button className="primary" onClick={handleDownloadPdf} disabled={downloading}>
             {downloading ? "PDF 생성 중..." : "PDF 다운로드"}
           </button>
         </div>
       </div>
       {downloadMsg && <p className="subtle no-print" style={{ marginTop: -10, marginBottom: 16 }}>{downloadMsg}</p>}
+      {copyMsg && <p className="subtle no-print" style={{ marginTop: -10, marginBottom: 16 }}>{copyMsg}</p>}
 
       <div ref={docWrapRef}>
       <div className="quote-doc" ref={quoteRef} style={{ zoom: docZoom }}>
