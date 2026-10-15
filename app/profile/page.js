@@ -60,13 +60,21 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append("photo", file);
       const res = await fetch("/api/auth/avatar", { method: "POST", body: formData });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setUploadMsg(`업로드 실패 (서버 응답 오류, 상태 코드 ${res.status})`);
+        return;
+      }
       if (!res.ok) {
         setUploadMsg(data.error || "업로드 실패");
         return;
       }
       setUploadMsg("프로필 사진이 변경되었습니다.");
       load();
+    } catch (err) {
+      setUploadMsg("업로드 중 오류가 발생했습니다: " + (err?.message || err));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
