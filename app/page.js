@@ -240,7 +240,7 @@ function NewQuoteForm() {
 
       <div className="card">
         <label>입력 (예: 업체명, 제품, 사이즈, 수량PLT/EA, 운임)</label>
-        <textarea value={rawText} onChange={(e) => setRawText(e.target.value)} placeholder="업체명, 품목1 수량, 품목2 수량, 운임 금액" />
+        <textarea value={rawText} onChange={(e) => setRawText(e.target.value)} placeholder="업체명, 품목1, 사이즈, 수량, 품목2, 사이즈, 수량, 운임" />
         <div className="flex gap-top">
           <button className="primary" onClick={handleParse} disabled={parsing}>
             {parsing ? "분석 중..." : "견적서 생성"}
