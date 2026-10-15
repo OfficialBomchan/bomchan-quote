@@ -31,7 +31,7 @@ export async function POST(req) {
   fs.writeFileSync(path.join(UPLOAD_DIR, filename), buffer);
 
   const avatarPath = `/uploads/avatars/${filename}?v=${Date.now()}`;
-  db.prepare(`UPDATE users SET avatar_path = ? WHERE id = ?`).run(avatarPath, sessionUser.userId);
+  await db.prepare(`UPDATE users SET avatar_path = ? WHERE id = ?`).run(avatarPath, sessionUser.userId);
 
   return Response.json({ ok: true, avatarPath });
 }

@@ -13,7 +13,7 @@ export async function PUT(req) {
 
   if (!name) return Response.json({ error: "이름을 입력해주세요." }, { status: 400 });
 
-  db.prepare(`UPDATE users SET name = ?, phone = ?, email = ?, title = ? WHERE id = ?`).run(
+  await db.prepare(`UPDATE users SET name = ?, phone = ?, email = ?, title = ? WHERE id = ?`).run(
     name,
     phone,
     email,

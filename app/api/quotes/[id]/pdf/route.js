@@ -49,7 +49,7 @@ export async function POST(req, { params }) {
     return Response.json({ error: "image가 필요합니다." }, { status: 400 });
   }
 
-  const quote = db.prepare(`SELECT quote_no FROM quotes WHERE id = ?`).get(id);
+  const quote = await db.prepare(`SELECT quote_no FROM quotes WHERE id = ?`).get(id);
   const fileName = requestedFileName || `${quote?.quote_no || "quote"}.pdf`;
 
   const pdfBytes = await buildPdfBytes(imageDataUrl);

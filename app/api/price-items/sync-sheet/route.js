@@ -22,17 +22,17 @@ export async function POST() {
   }
 
   const label = `구글 시트 동기화 ${new Date().toISOString()}`;
-  const replaceAll = db.transaction((rows) => {
-    db.prepare(`DELETE FROM price_items`).run();
-    const insert = db.prepare(
+  const replaceAll = db.transaction(async (rows, tx) => {
+    await tx.prepare(`DELETE FROM price_items`).run();
+    const insert = tx.prepare(
       `INSERT INTO price_items (name, spec, pallet_qty, pallet_price, note, discontinued) VALUES (?, ?, ?, ?, ?, ?)`
     );
     for (const it of rows) {
-      insert.run(it.name, it.spec, it.pallet_qty, it.pallet_price, it.note, it.discontinued);
+      await insert.run(it.name, it.spec, it.pallet_qty, it.pallet_price, it.note, it.discontinued);
     }
-    db.prepare(`INSERT INTO price_versions (label) VALUES (?)`).run(label);
+    await tx.prepare(`INSERT INTO price_versions (label) VALUES (?)`).run(label);
   });
-  replaceAll(items);
+  await replaceAll(items);
 
   return Response.json({
     ok: true,

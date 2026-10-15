@@ -15,14 +15,14 @@ export async function POST(req) {
     return Response.json({ error: "비밀번호는 4자 이상이어야 합니다." }, { status: 400 });
   }
 
-  const existing = db.prepare(`SELECT id FROM users WHERE username = ?`).get(username);
+  const existing = await db.prepare(`SELECT id FROM users WHERE username = ?`).get(username);
   if (existing) {
     return Response.json({ error: "이미 사용 중인 아이디입니다." }, { status: 400 });
   }
 
   const passwordHash = bcrypt.hashSync(password, 10);
-  const result = db
-    .prepare(`INSERT INTO users (username, password_hash, name) VALUES (?, ?, ?)`)
+  const result = await db
+    .prepare(`INSERT INTO users (username, password_hash, name) VALUES (?, ?, ?) RETURNING id`)
     .run(username, passwordHash, name);
 
   const token = signSession({ userId: result.lastInsertRowid, username, name });

@@ -19,7 +19,7 @@ export async function GET(req) {
     params.push(user.userId);
   }
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-  const rows = db.prepare(`SELECT * FROM quotes ${where} ORDER BY id DESC`).all(...params);
+  const rows = await db.prepare(`SELECT * FROM quotes ${where} ORDER BY id DESC`).all(...params);
 
   return Response.json({ quotes: rows.map((r) => ({ ...r, items: JSON.parse(r.items_json) })) });
 }
@@ -35,7 +35,7 @@ export async function POST(req) {
 
   const qDate = quoteDate ? new Date(quoteDate) : new Date();
   const validUntil = addDays(qDate, 21);
-  const quoteNo = generateQuoteNo(qDate);
+  const quoteNo = await generateQuoteNo(qDate);
 
   const finalItems = items.map((it) => {
     const { supply, vat, total } = calcLine(it.eaUnitPrice, it.eaQty);
@@ -74,13 +74,13 @@ export async function POST(req) {
   // 폼에서 명시적으로 넘긴 값이 있으면 그걸 우선한다. 발행 당시 스냅샷이라 이후 프로필을
   // 바꿔도 이미 만든 견적서는 바뀌지 않는다.
   const profile = user
-    ? db.prepare(`SELECT name, title, phone, email, avatar_path FROM users WHERE id = ?`).get(user.userId)
+    ? await db.prepare(`SELECT name, title, phone, email, avatar_path FROM users WHERE id = ?`).get(user.userId)
     : null;
 
-  const result = db
+  const result = await db
     .prepare(
       `INSERT INTO quotes (quote_no, company, contact_name, contact_phone, delivery_address, delivery_datetime, customer_request, quote_date, valid_until, manager_name, manager_title, manager_phone, manager_email, manager_avatar_path, notes, items_json, total_amount, raw_input, created_by_user_id, created_by_name)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
     )
     .run(
       quoteNo,
