@@ -1,4 +1,5 @@
 const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
 const { s3, AVATAR_BUCKET } = require("../../../../lib/s3.js");
 const db = require("../../../../lib/db.js");
 const { getUserFromRequest } = require("../../../../lib/auth.js");
@@ -24,7 +25,15 @@ export async function POST(req) {
 
   const ext = ALLOWED_TYPES[file.type];
   const key = `${sessionUser.userId}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const rawBuffer = Buffer.from(await file.arrayBuffer());
+
+  // 요즘 휴대폰 사진은 3000~4000px급 원본이라, 이걸 그대로 작은 동그라미 아바타에
+  // CSS로 욱여넣으면 특히 아이폰 사파리에서 오히려 흐릿하게 렌더링되는 고질적인
+  // 버그가 있다. 화면에 쓰기 충분한 크기(최대 500px)로 서버에서 미리 줄여서
+  // 저장하면 더 선명하게 보이고 용량도 훨씬 줄어든다.
+  const buffer = await sharp(rawBuffer)
+    .resize({ width: 500, height: 500, fit: "inside", withoutEnlargement: true })
+    .toBuffer();
 
   // 버킷은 비공개로 두고, 우리 서버의 /api/avatar/[key] 라우트가 S3에서
   // 받아와서 그대로 넘겨주는 방식(프록시)으로 서비스한다. 서버가 재배포/교체돼도
