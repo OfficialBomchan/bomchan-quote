@@ -141,10 +141,10 @@ a.link { color: var(--green); font-size: 13px; }
 .info-box .sub { font-size: 12px; color: var(--gray-600); margin-top: 2px; }
 
 .quote-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 0; }
-.quote-table th { background: var(--gray-200); font-weight: 800; color: #000; padding: 10px 8px; text-align: left; }
-.quote-table td { padding: 12px 8px; border-bottom: 1px solid var(--gray-100); vertical-align: top; font-weight: 600; color: #000; }
+.quote-table th { background: var(--gray-200); font-weight: 700; color: #000; padding: 14px 10px; text-align: left; }
+.quote-table td { padding: 16px 10px; border-bottom: 1px solid var(--gray-100); vertical-align: top; font-weight: 400; color: #000; }
 .quote-table th.num, .quote-table td.num { text-align: right; }
-.quote-table .item-spec { font-size: 11px; color: var(--gray-600); }
+.quote-table .item-spec { font-size: 11px; color: var(--gray-600); margin-top: 2px; }
 .quote-table th.col-money { background: var(--green); color: white; }
 .quote-table td.col-money { background: var(--green-light); font-weight: 700; color: var(--green); }
 
