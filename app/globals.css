@@ -176,13 +176,11 @@ a.link { color: var(--green); font-size: 13px; }
   background: var(--green-light);
 }
 .quote-footer img.avatar {
-  /* 동그란 틀은 유지하되, 사진은 object-fit: contain으로 잘리지 않게 담는다.
-     남는 여백은 흰색이라 눈에 덜 띈다. */
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: white;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center top;
 }
 
 @page {

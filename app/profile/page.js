@@ -92,25 +92,19 @@ export default function ProfilePage() {
         <h2>프로필 사진</h2>
         <div className="flex">
           {user.avatarPath ? (
-            // 동그란 틀은 유지하되, 사진은 잘리지 않도록 contain으로 원본 비율
-            // 그대로 담는다. 남는 여백은 카드와 같은 흰색이라 눈에 덜 띈다.
             <div
               style={{
                 width: 72,
                 height: 72,
                 borderRadius: "50%",
                 overflow: "hidden",
-                background: "white",
                 flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
               }}
             >
               <img
                 src={user.avatarPath}
                 alt="프로필 사진"
-                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
               />
             </div>
           ) : (
