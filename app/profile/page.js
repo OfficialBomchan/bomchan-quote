@@ -92,21 +92,27 @@ export default function ProfilePage() {
         <h2>프로필 사진</h2>
         <div className="flex">
           {user.avatarPath ? (
-            // 원본 비율을 그대로 보여주기 위해 틀을 정사각형으로 고정하지 않고,
-            // 사진 자체의 가로세로 비율에 맞춰 높이가 늘어나게 한다(최대 72px 폭,
-            // 확대는 되지만 잘리지는 않음).
-            <img
-              src={user.avatarPath}
-              alt="프로필 사진"
+            // 동그란 틀은 유지하되, 사진은 잘리지 않도록 contain으로 원본 비율
+            // 그대로 담는다. 남는 여백은 카드와 같은 흰색이라 눈에 덜 띈다.
+            <div
               style={{
                 width: 72,
-                height: "auto",
-                maxHeight: 140,
-                borderRadius: 8,
+                height: 72,
+                borderRadius: "50%",
+                overflow: "hidden",
+                background: "white",
                 flexShrink: 0,
-                objectFit: "contain",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
+            >
+              <img
+                src={user.avatarPath}
+                alt="프로필 사진"
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
+            </div>
           ) : (
             <div
               style={{

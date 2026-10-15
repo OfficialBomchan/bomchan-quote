@@ -176,12 +176,12 @@ a.link { color: var(--green); font-size: 13px; }
   background: var(--green-light);
 }
 .quote-footer img.avatar {
-  /* 사진이 잘리지 않도록 틀을 원처럼 고정하지 않고, 사진 자체의 가로세로
-     비율에 맞춰 높이가 늘어나게 한다(폭만 44px로 고정, 확대는 되어도 안 잘림). */
+  /* 동그란 틀은 유지하되, 사진은 object-fit: contain으로 잘리지 않게 담는다.
+     남는 여백은 흰색이라 눈에 덜 띈다. */
   width: 44px;
-  height: auto;
-  max-height: 80px;
-  border-radius: 6px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
   object-fit: contain;
 }
 
