@@ -21,8 +21,21 @@ function bigrams(s) {
   return set;
 }
 
-// Jaccard 유사도 + 포함비율을 섞어서, 짧은 입력이 긴 업체명 안에 들어있는
-// 경우(또는 그 반대)도 잘 잡히게 한다. 단가표 품목 매칭과 같은 방식.
+function levenshtein(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...new Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+// Jaccard 유사도 + 포함비율(bigram 기반)에 더해, 글자 편집거리(한두 글자만
+// 다른 오타)도 함께 본다. 업체명이 보통 3~6글자로 짧다 보니 한 글자만 틀려도
+// bigram은 거의 다 안 겹쳐버리는데("몬토화분" vs "몬트화분"), 편집거리를 같이
+// 보면 이런 "한 글자 오타"도 높은 점수로 잘 잡힌다.
 function similarity(a, b) {
   const setA = bigrams(a);
   const setB = bigrams(b);
@@ -32,7 +45,14 @@ function similarity(a, b) {
   const jaccardScore = union === 0 ? 0 : inter / union;
   const minSize = Math.min(setA.size, setB.size);
   const overlapScore = minSize === 0 ? 0 : inter / minSize;
-  return jaccardScore * 0.5 + overlapScore * 0.5;
+  const bigramScore = jaccardScore * 0.5 + overlapScore * 0.5;
+
+  const na = normalize(a);
+  const nb = normalize(b);
+  const maxLen = Math.max(na.length, nb.length) || 1;
+  const editScore = 1 - levenshtein(na, nb) / maxLen;
+
+  return bigramScore * 0.5 + editScore * 0.5;
 }
 
 function mapPage(page) {
