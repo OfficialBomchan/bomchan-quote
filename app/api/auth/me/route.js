@@ -5,7 +5,7 @@ export async function GET(req) {
   const sessionUser = getUserFromRequest(req);
   if (!sessionUser) return Response.json({ user: null }, { status: 200 });
 
-  const row = db
+  const row = await db
     .prepare(`SELECT id, username, name, phone, email, title, avatar_path FROM users WHERE id = ?`)
     .get(sessionUser.userId);
   if (!row) return Response.json({ user: null }, { status: 200 });
