@@ -13,6 +13,15 @@ function buildPdfFileName(quote) {
   return company ? `${company}_${quote.quote_no}.pdf` : `${quote.quote_no}.pdf`;
 }
 
+// 자갈/마사토/폴라이트/황토볼 같은 입자류는 규격이 "20-30"처럼 입자 크기(mm)
+// 범위라서 뒤에 mm을 붙여준다. 판석류는 두께(T) 표기라 단위가 달라 건드리지 않는다.
+function formatSpec(name, spec) {
+  if (!spec) return spec;
+  if (/판석/.test(name || "")) return spec;
+  if (/^\d+\s*-\s*\d+$/.test(spec.trim())) return `${spec}mm`;
+  return spec;
+}
+
 // .quote-doc의 CSS max-width와 같은 값. 화면 폭이 이보다 좁을 때(모바일)
 // 레이아웃을 다시 짜지(reflow) 않고 데스크톱 모습 그대로 통째로 축소해서,
 // 다운로드되는 PDF와 똑같은 비율로 보이게 한다.
@@ -183,7 +192,7 @@ export default function QuoteDetailPage() {
               <tr key={i}>
                 <td>
                   {it.name}
-                  {it.spec && <div className="item-spec">{it.spec}</div>}
+                  {it.spec && <div className="item-spec">{formatSpec(it.name, it.spec)}</div>}
                 </td>
                 <td>{it.unit}</td>
                 <td className="num">{it.qty.toLocaleString()}</td>
