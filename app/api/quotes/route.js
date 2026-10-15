@@ -2,10 +2,22 @@ const db = require("../../../lib/db.js");
 const { generateQuoteNo, addDays, formatDateDot, calcLine } = require("../../../lib/quoteUtils.js");
 const { getUserFromRequest } = require("../../../lib/auth.js");
 
+// <input type="date">가 주는 "2026-10-15"를, DB에 저장된 견적일 형식인
+// "2026. 10. 15"로 바꿔준다. 둘 다 앞에서부터 연-월-일 순으로 0채움이라
+// 문자열 그대로 >= / <= 비교해도 날짜 순서와 똑같이 맞는다.
+function isoToDotDate(iso) {
+  const m = (iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return `${m[1]}. ${m[2]}. ${m[3]}`;
+}
+
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q") || "";
   const mine = searchParams.get("mine") === "1";
+  const manager = searchParams.get("manager") || "";
+  const from = isoToDotDate(searchParams.get("from"));
+  const to = isoToDotDate(searchParams.get("to"));
   const user = getUserFromRequest(req);
 
   const conditions = [];
@@ -17,6 +29,18 @@ export async function GET(req) {
   if (mine && user) {
     conditions.push(`created_by_user_id = ?`);
     params.push(user.userId);
+  }
+  if (manager) {
+    conditions.push(`created_by_name LIKE ?`);
+    params.push(`%${manager}%`);
+  }
+  if (from) {
+    conditions.push(`quote_date >= ?`);
+    params.push(from);
+  }
+  if (to) {
+    conditions.push(`quote_date <= ?`);
+    params.push(to);
   }
   const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   const rows = await db.prepare(`SELECT * FROM quotes ${where} ORDER BY id DESC`).all(...params);

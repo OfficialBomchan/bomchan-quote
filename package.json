@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "seed": "node lib/seed.js",
+    "test": "node --test lib/*.test.js",
     "postinstall": "next build"
   },
   "dependencies": {

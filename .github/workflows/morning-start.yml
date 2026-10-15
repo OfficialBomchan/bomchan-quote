@@ -1,0 +1,28 @@
+name: Start server for the morning
+
+# 매일 오전 7시(한국시간)에 night-stop.yml이 꺼놨던 EC2 인스턴스를 다시 1대로 되돌린다.
+on:
+  schedule:
+    - cron: "0 22 * * *" # UTC 22:00 = KST 07:00
+  workflow_dispatch: {}
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Scale EC2 instance back up to 1
+        run: |
+          asg=$(aws autoscaling describe-auto-scaling-groups \
+            --query "AutoScalingGroups[?Tags[?Key=='elasticbeanstalk:environment-name' && Value=='bomchan-quote-prod']].AutoScalingGroupName" \
+            --output text)
+          echo "Auto Scaling Group: $asg"
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "$asg" \
+            --min-size 1 --max-size 1 --desired-capacity 1

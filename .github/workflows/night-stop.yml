@@ -1,0 +1,30 @@
+name: Stop server for the night
+
+# 매일 자정(한국시간)에 서버 인스턴스를 꺼서 아무도 안 쓰는 새벽 시간대 비용을 아낀다.
+# RDS(DB)는 그대로 켜두고(멈췄다 켜는 과정에서 생기는 위험을 피하려고), EC2 인스턴스만
+# 0대로 줄인다 — 아침에 night-start.yml이 다시 1대로 되돌려놓는다.
+on:
+  schedule:
+    - cron: "0 15 * * *" # UTC 15:00 = KST 00:00
+  workflow_dispatch: {}
+
+jobs:
+  stop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Scale EC2 instance down to 0
+        run: |
+          asg=$(aws autoscaling describe-auto-scaling-groups \
+            --query "AutoScalingGroups[?Tags[?Key=='elasticbeanstalk:environment-name' && Value=='bomchan-quote-prod']].AutoScalingGroupName" \
+            --output text)
+          echo "Auto Scaling Group: $asg"
+          aws autoscaling update-auto-scaling-group \
+            --auto-scaling-group-name "$asg" \
+            --min-size 0 --max-size 1 --desired-capacity 0
