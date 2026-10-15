@@ -161,9 +161,6 @@ a.link { color: var(--green); font-size: 13px; }
 .quote-footer .manager { text-align: right; font-size: 12px; }
 .quote-footer .manager .name { font-weight: 700; font-size: 13px; }
 .quote-footer .avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
   color: var(--green);
   display: flex;
   align-items: center;
@@ -173,11 +170,19 @@ a.link { color: var(--green); font-size: 13px; }
   flex-shrink: 0;
 }
 .quote-footer div.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background: var(--green-light);
 }
 .quote-footer img.avatar {
-  object-fit: cover;
-  object-position: center top;
+  /* 사진이 잘리지 않도록 틀을 원처럼 고정하지 않고, 사진 자체의 가로세로
+     비율에 맞춰 높이가 늘어나게 한다(폭만 44px로 고정, 확대는 되어도 안 잘림). */
+  width: 44px;
+  height: auto;
+  max-height: 80px;
+  border-radius: 6px;
+  object-fit: contain;
 }
 
 @page {
@@ -211,7 +216,7 @@ a.link { color: var(--green); font-size: 13px; }
     flex-basis: 100%;
   }
 
-  table:not(.item-table), .quote-table {
+  table:not(.item-table):not(.quote-table) {
     display: block;
     width: 100%;
     max-width: 100%;
@@ -248,16 +253,9 @@ a.link { color: var(--green); font-size: 13px; }
   .item-table .item-name-cell { min-width: 0; }
   .item-table .num-input, .item-table .note-input { width: 100%; }
 
-  .quote-doc { padding: 20px 16px; }
-  .quote-header { flex-wrap: wrap; gap: 16px; }
-  .quote-header .title-block { text-align: left; border-left: none; border-top: 3px solid var(--green); padding-left: 0; padding-top: 10px; width: 100%; }
-  .quote-header .title { font-size: 22px; }
-
-  .info-boxes { flex-direction: column; gap: 1px; }
-
-  .total-bar { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .quote-footer { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .quote-footer .manager { text-align: left; }
+  /* 견적서 문서(.quote-doc) 자체는 모바일에서도 레이아웃을 다시 짜지 않는다.
+     대신 페이지의 JS가 화면 폭에 맞춰 zoom으로 통째로 축소해서, 다운로드되는
+     PDF와 항상 똑같은 비율로 보이게 한다 (app/quotes/[id]/page.js 참고). */
 
   input, textarea, select, button { font-size: 16px; }
 }

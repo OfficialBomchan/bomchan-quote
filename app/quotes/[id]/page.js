@@ -13,18 +13,36 @@ function buildPdfFileName(quote) {
   return company ? `${company}_${quote.quote_no}.pdf` : `${quote.quote_no}.pdf`;
 }
 
+// .quote-doc의 CSS max-width와 같은 값. 화면 폭이 이보다 좁을 때(모바일)
+// 레이아웃을 다시 짜지(reflow) 않고 데스크톱 모습 그대로 통째로 축소해서,
+// 다운로드되는 PDF와 똑같은 비율로 보이게 한다.
+const DOC_DESIGN_WIDTH = 820;
+
 export default function QuoteDetailPage() {
   const { id } = useParams();
   const [quote, setQuote] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadMsg, setDownloadMsg] = useState("");
+  const [docZoom, setDocZoom] = useState(1);
   const quoteRef = useRef(null);
+  const docWrapRef = useRef(null);
 
   useEffect(() => {
     fetch(`/api/quotes/${id}`)
       .then((r) => r.json())
       .then((d) => setQuote(d.quote));
   }, [id]);
+
+  useEffect(() => {
+    function updateZoom() {
+      if (!docWrapRef.current) return;
+      const available = docWrapRef.current.clientWidth;
+      setDocZoom(available < DOC_DESIGN_WIDTH ? available / DOC_DESIGN_WIDTH : 1);
+    }
+    updateZoom();
+    window.addEventListener("resize", updateZoom);
+    return () => window.removeEventListener("resize", updateZoom);
+  }, [quote]);
 
   async function handleDownloadPdf() {
     if (!quoteRef.current || downloading) return;
@@ -37,6 +55,10 @@ export default function QuoteDetailPage() {
 
     setDownloading(true);
     setDownloadMsg("");
+    // 화면에서 보기 좋으라고 걸어둔 축소(zoom)를 캡처 직전엔 잠깐 풀어야 한다.
+    // 안 풀면 캡처 자체가 축소된 채로 찍혀서 PDF 결과물이 작게 나온다.
+    setDocZoom(1);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     try {
       const html2canvas = (await import("html2canvas")).default;
 
@@ -91,6 +113,10 @@ export default function QuoteDetailPage() {
       setDownloadMsg("PDF 생성 중 오류가 발생했습니다: " + (err?.message || err));
     } finally {
       setDownloading(false);
+      if (docWrapRef.current) {
+        const available = docWrapRef.current.clientWidth;
+        setDocZoom(available < DOC_DESIGN_WIDTH ? available / DOC_DESIGN_WIDTH : 1);
+      }
     }
   }
 
@@ -112,7 +138,8 @@ export default function QuoteDetailPage() {
       </div>
       {downloadMsg && <p className="subtle no-print" style={{ marginTop: -10, marginBottom: 16 }}>{downloadMsg}</p>}
 
-      <div className="quote-doc" ref={quoteRef}>
+      <div ref={docWrapRef}>
+      <div className="quote-doc" ref={quoteRef} style={{ zoom: docZoom }}>
         <div className="quote-header">
           <div>
             <div className="company">㈜봄찬</div>
@@ -204,6 +231,7 @@ export default function QuoteDetailPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </>
   );
