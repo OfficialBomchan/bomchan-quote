@@ -9,9 +9,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "seed": "node lib/seed.js"
+    "seed": "node lib/seed.js",
+    "postinstall": "next build"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1152.0",
     "bcryptjs": "^3.0.3",
     "html2canvas": "^1.4.1",
     "jsonwebtoken": "^9.0.3",

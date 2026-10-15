@@ -10,5 +10,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Call price sheet sync endpoint
-        run: curl -sf -X POST https://bomchan-quote.onrender.com/api/price-items/sync-sheet
+      - name: Call price sheet sync endpoint (AWS)
+        run: curl -sf -X POST http://bomchan-quote-prod.eba-zkfhepjp.ap-northeast-2.elasticbeanstalk.com/api/price-items/sync-sheet
+      - name: Call price sheet sync endpoint (Render backup)
+        run: curl -sf -X POST https://bomchan-quote.onrender.com/api/price-items/sync-sheet || true
