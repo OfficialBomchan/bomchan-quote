@@ -4,7 +4,7 @@ const db = require("../../../../lib/db.js");
 const { getUserFromRequest } = require("../../../../lib/auth.js");
 
 const ALLOWED_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
-const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB (고화질 원본 사진도 그대로 올릴 수 있게)
 
 export async function POST(req) {
   const sessionUser = getUserFromRequest(req);
@@ -19,7 +19,7 @@ export async function POST(req) {
     return Response.json({ error: "jpg, png, webp 파일만 업로드할 수 있습니다." }, { status: 400 });
   }
   if (file.size > MAX_SIZE) {
-    return Response.json({ error: "파일 크기는 3MB 이하여야 합니다." }, { status: 400 });
+    return Response.json({ error: "파일 크기는 10MB 이하여야 합니다." }, { status: 400 });
   }
 
   const ext = ALLOWED_TYPES[file.type];

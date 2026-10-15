@@ -129,7 +129,7 @@ export default function ProfilePage() {
           )}
           <div>
             <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhotoChange} disabled={uploading} />
-            <div className="subtle" style={{ marginTop: 4 }}>jpg/png/webp, 3MB 이하</div>
+            <div className="subtle" style={{ marginTop: 4 }}>jpg/png/webp, 10MB 이하</div>
             {uploadMsg && <div className="subtle" style={{ marginTop: 4 }}>{uploadMsg}</div>}
           </div>
         </div>
