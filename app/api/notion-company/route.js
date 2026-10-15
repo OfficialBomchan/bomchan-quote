@@ -85,19 +85,26 @@ export async function GET(req) {
     });
     let results = (exactData.results || []).map(mapPage);
 
-    // 부분일치로 못 찾았으면(오타, 띄어쓰기 차이 등), 전체 업체 목록을 가져와서
-    // 글자 유사도로 다시 순위를 매긴다. DB가 너무 크면 최대 3페이지(최대 300건)까지만 본다.
+    // 부분일치로 못 찾았으면(오타, 띄어쓰기 차이 등), 입력어의 2글자 조각(bigram) 중
+    // 하나라도 이름에 포함되는 업체들을 노션 자체 OR 필터로 넓게 걸러온 다음,
+    // 글자 유사도로 다시 순위를 매긴다. 전체 목록을 다 가져오는 것보다 훨씬 빠르고,
+    // DB가 몇백~몇천 건이어도 놓치는 후보가 없다.
     if (results.length === 0) {
-      const all = [];
-      let cursor;
-      for (let i = 0; i < 3; i++) {
-        const page = await queryNotion(apiKey, dbId, {
+      const normalized = q.replace(/[\s()·.,]/g, "");
+      const chunks = new Set();
+      for (let i = 0; i < normalized.length - 1; i++) chunks.add(normalized.slice(i, i + 2));
+      if (normalized.length === 1) chunks.add(normalized);
+
+      let all = [];
+      if (chunks.size > 0) {
+        const orFilters = [...chunks]
+          .slice(0, 10) // 노션 compound filter 한도 고려
+          .map((c) => ({ property: "이름", title: { contains: c } }));
+        const data = await queryNotion(apiKey, dbId, {
+          filter: orFilters.length === 1 ? orFilters[0] : { or: orFilters },
           page_size: 100,
-          start_cursor: cursor,
         });
-        all.push(...(page.results || []));
-        if (!page.has_more) break;
-        cursor = page.next_cursor;
+        all = data.results || [];
       }
 
       const scored = all
